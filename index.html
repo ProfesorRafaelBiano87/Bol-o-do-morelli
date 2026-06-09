@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Bolão Copa 2026 - Amigos</title>
+    <!-- Bibliotecas para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f5f7fa 0%, #e9edf2 100%);
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Header estilo copa */
+        .header {
+            background: linear-gradient(135deg, #1a472a 0%, #2c7a3e 100%);
+            color: white;
+            padding: 28px 32px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 span {
+            background: #ffcc00;
+            color: #1a472a;
+            font-size: 1.3rem;
+            padding: 4px 16px;
+            border-radius: 60px;
+            font-weight: bold;
+        }
+
+        .sub {
+            margin-top: 12px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Formulário participante */
+        .participant-area {
+            background: #fef7e0;
+            padding: 20px 32px;
+            border-bottom: 1px solid #ffe2a4;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .participant-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 2;
+            min-width: 200px;
+        }
+
+        .participant-field label {
+            font-weight: 700;
+            color: #2c3e2b;
+            font-size: 0.85rem;
+        }
+
+        .participant-field input {
+            padding: 12px 16px;
+            border-radius: 40px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            background: white;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .participant-field input:focus {
+            border-color: #2c7a3e;
+            box-shadow: 0 0 0 2px rgba(44,122,62,0.2);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #1a472a;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: #0f2f1d;
+            transform: scale(0.97);
+        }
+
+        .btn-pdf {
+            background: #c0392b;
+        }
+        .btn-pdf:hover {
+            background: #a82315;
+        }
+        .btn-clear {
+            background: #7f8c8d;
+        }
+
+        /* Abas / navegação */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            background: #f0f2f5;
+            border-bottom: 2px solid #d4d9e0;
+            gap: 4px;
+            padding: 0 20px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: #2c3e2b;
+            font-weight: 600;
+            padding: 14px 20px;
+            border-radius: 28px 28px 0 0;
+            margin: 6px 2px 0 2px;
+        }
+        .tab-btn.active {
+            background: white;
+            color: #1a472a;
+            border-bottom: 3px solid #ffcc00;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 28px 32px;
+            animation: fade 0.2s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(5px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        /* Cards de palpites */
+        .grupo-card, .jogo-card {
+            background: #fefaf0;
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #f3e5c9;
+        }
+        .grupo-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 16px;
+            border-left: 7px solid #ffcc00;
+            padding-left: 16px;
+        }
+        .times-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        .select-group {
+            flex: 1;
+            min-width: 180px;
+        }
+        .select-group label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 40px;
+            border: 1px solid #ccc;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .confronto {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 18px;
+            background: white;
+            padding: 12px 18px;
+            border-radius: 60px;
+        }
+        .time-nome {
+            font-weight: 600;
+            min-width: 130px;
+        }
+        .vs {
+            font-weight: bold;
+            background: #eee;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+        .btn-resumo {
+            background: #2c7a3e;
+            margin-top: 20px;
+        }
+
+        footer {
+            background: #1e2a23;
+            color: #9abf8a;
+            text-align: center;
+            padding: 18px;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 700px) {
+            .times-row { flex-direction: column; }
+            .confronto { flex-direction: column; align-items: flex-start; border-radius: 20px; }
+            .tab-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⚽ BOLÃO COPA 2026 <span>Amigos</span></h1>
+        <div class="sub">Palpites por rodada • Gere seu PDF oficial</div>
+    </div>
+
+    <div class="participant-area">
+        <div class="participant-field">
+            <label>👤 Seu nome (para o PDF)</label>
+            <input type="text" id="nomeParticipante" placeholder="Ex: João Silva" autocomplete="off">
+        </div>
+        <div class="actions">
+            <button id="limparBtn" class="btn-clear">🗑️ Limpar todos palpites</button>
+            <button id="gerarPdfBtn" class="btn-pdf">📄 GERAR PDF DOS PALPITES</button>
+        </div>
+    </div>
+
+    <!-- Abas rodadas -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="grupos">📋 FASE DE GRUPOS</button>
+        <button class="tab-btn" data-tab="oitavas">🏆 OITAVAS</button>
+        <button class="tab-btn" data-tab="quartas">🥇 QUARTAS</button>
+        <button class="tab-btn" data-tab="semifinais">⚡ SEMIFINAIS</button>
+        <button class="tab-btn" data-tab="finais">🏁 FINAL / 3º LUGAR</button>
+    </div>
+
+    <!-- Conteúdo das abas -->
+    <div id="grupos" class="tab-content active"></div>
+    <div id="oitavas" class="tab-content"></div>
+    <div id="quartas" class="tab-content"></div>
+    <div id="semifinais" class="tab-content"></div>
+    <div id="finais" class="tab-content"></div>
+
+    <footer>⚽ Palpites salvos automaticamente no navegador. Preencha todas as opções antes de gerar o PDF.</footer>
+</div>
+
+<script>
+    // ---------- TIMES OFICIAIS COPA 2026 (32 seleções plausíveis) ----------
+    const TIMES = [
+        "Brasil", "Argentina", "França", "Inglaterra", "Espanha", "Alemanha", "Portugal", "Holanda",
+        "Bélgica", "Croácia", "Uruguai", "Colômbia", "EUA", "México", "Marrocos", "Senegal",
+        "Japão", "Coreia do Sul", "Arábia Saudita", "Austrália", "Suíça", "Dinamarca", "Suécia",
+        "Polônia", "Sérvia", "Canadá", "Equador", "Peru", "Egito", "Nigéria", "Gana", "Camarões"
+    ];
+
+    // Estrutura dos grupos (A-H)
+    const GRUPOS = {
+        A: ["Brasil", "Suíça", "Canadá", "Camarões"],
+        B: ["Argentina", "Dinamarca", "Egito", "Austrália"],
+        C: ["França", "Sérvia", "Peru", "Japão"],
+        D: ["Inglaterra", "Croácia", "EUA", "Gana"],
+        E: ["Espanha", "Alemanha", "Marrocos", "Coreia do Sul"],
+        F: ["Portugal", "Holanda", "Senegal", "Arábia Saudita"],
+        G: ["Bélgica", "Uruguai", "México", "Nigéria"],
+        H: ["Colômbia", "Polônia", "Equador", "Suécia"]
+    };
+
+    // Estado dos palpites
+    let palpites = {
+        grupos: {},   // ex: { A: { first: "Brasil", second: "Suíça" } }
+        oitavas: {},  // chave: "OIT1", "OIT2"... valor: timeVencedor
+        quartas: {},
+        semifinais: {},
+        final: { campeao: "", terceiro: "" }
+    };
+
+    // Definir confrontos fixos (oitavas de acordo com 1ºA vs 2ºB ...)
+    const confrontosOitavas = [
+        { id: "OIT1", desc: "1º Grupo A vs 2º Grupo B", grupoA: "A", grupoB: "B" },
+        { id: "OIT2", desc: "1º Grupo C vs 2º Grupo D", grupoA: "C", grupoB: "D" },
+        { id: "OIT3", desc: "1º Grupo E vs 2º Grupo F", grupoA: "E", grupoB: "F" },
+        { id: "OIT4", desc: "1º Grupo G vs 2º Grupo H", grupoA: "G", grupoB: "H" },
+        { id: "OIT5", desc: "1º Grupo B vs 2º Grupo A", grupoA: "B", grupoB: "A" },
+        { id: "OIT6", desc: "1º Grupo D vs 2º Grupo C", grupoA: "D", grupoB: "C" },
+        { id: "OIT7", desc: "1º Grupo F vs 2º Grupo E", grupoA: "F", grupoB: "E" },
+        { id: "OIT8", desc: "1º Grupo H vs 2º Grupo G", grupoA: "H", grupoB: "G" }
+    ];
+
+    // quartas (pré definidas: vencedor OIT1 vs OIT2, OIT3 vs OIT4, OIT5 vs OIT6, OIT7 vs OIT8)
+    const quartasChaves = [
+        { id: "QUA1", desc: "Vencedor OIT1 vs Vencedor OIT2", dep1: "OIT1", dep2: "OIT2" },
+        { id: "QUA2", desc: "Vencedor OIT3 vs Vencedor OIT4", dep1: "OIT3", dep2: "OIT4" },
+        { id: "QUA3", desc: "Vencedor OIT5 vs Vencedor OIT6", dep1: "OIT5", dep2: "OIT6" },
+        { id: "QUA4", desc: "Vencedor OIT7 vs Vencedor OIT8", dep1: "OIT7", dep2: "OIT8" }
+    ];
+
+    // semis: QUA1 vs QUA2, QUA3 vs QUA4
+    const semis = [
+        { id: "SEM1", desc: "Vencedor QUA1 vs Vencedor QUA2", dep1: "QUA1", dep2: "QUA2" },
+        { id: "SEM2", desc: "Vencedor QUA3 vs Vencedor QUA4", dep1: "QUA3", dep2: "QUA4" }
+    ];
+    // final: SEM1 vs SEM2; terceiro lugar perdedores das semis
+
+    // Inicializar estrutura padrão
+    function initPalpites() {
+        // grupos
+        for (let g in GRUPOS) {
+            if (!palpites.grupos[g]) {
+                palpites.grupos[g] = { first: "", second: "" };
+            }
+        }
+        for (let o of confrontosOitavas) {
+            if (!palpites.oitavas[o.id]) palpites.oitavas[o.id] = "";
+        }
+        for (let q of quartasChaves) {
+            if (!palpites.quartas[q.id]) palpites.quartas[q.id] = "";
+        }
+        for (let s of semis) {
+            if (!palpites.semifinais[s.id]) palpites.semifinais[s.id] = "";
+        }
+        if (!palpites.final.campeao) palpites.final.campeao = "";
+        if (!palpites.final.terceiro) palpites.final.terceiro = "";
+    }
+
+    // Carregar localStorage
+    function carregarLocalStorage() {
+        const saved = localStorage.getItem("bolao2026_palpites");
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                palpites = parsed;
+            } catch(e) {}
+        }
+        const nomeSalvo = localStorage.getItem("bolao2026_nome");
+        if (nomeSalvo) document.getElementById("nomeParticipante").value = nomeSalvo;
+        initPalpites();
+    }
+
+    function salvarLocalStorage() {
+        localStorage.setItem("bolao2026_palpites", JSON.stringify(palpites));
+        const nome = document.getElementById("nomeParticipante").value;
+        localStorage.setItem("bolao2026_nome", nome);
+    }
+
+    // Função para obter opções de times disponíveis para selects (para grupos)
+    function getTimesGrupo(grupo) {
+        return GRUPOS[grupo];
+    }
+
+    // Renderizar fase de grupos
+    function renderGrupos() {
+        const container = document.getElementById("grupos");
+        container.innerHTML = "";
+        for (let [letra, times] of Object.entries(GRUPOS)) {
+            const card = document.createElement("div");
+            card.className = "grupo-card";
+            card.innerHTML = `
+                <div class="grupo-title">Grupo ${letra}</div>
+                <div class="times-row">
+                    <div class="select-group"><label>🥇 1º colocado</label>
+                        <select data-grupo="${letra}" data-pos="first">${gerarOptionsTimes(times, palpites.grupos[letra]?.first || "")}</select>
+                    </div>
+                    <div class="select-group"><label>🥈 2º colocado</label>
+                        <select data-grupo="${letra}" data-pos="second">${gerarOptionsTimes(times, palpites.grupos[letra]?.second || "")}</select>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+        // eventos
+        document.querySelectorAll("#grupos select").forEach(sel => {
+            sel.addEventListener("change", (e) => {
+                const grupo = sel.dataset.grupo;
+                const pos = sel.dataset.pos;
+                if (!palpites.grupos[grupo]) palpites.grupos[grupo] = { first: "", second: "" };
+                palpites.grupos[grupo][pos] = sel.value;
+                salvarLocalStorage();
+                renderTodasAbas();  // para atualizar confrontos dependentes
+            });
+        });
+    }
+
+    function gerarOptionsTimes(timesList, selectedVal) {
+        let opts = `<option value="">-- Selecione --</option>`;
+        timesList.forEach(time => {
+            opts += `<option value="${time}" ${selectedVal === time ? "selected" : ""}>${time}</option>`;
+        });
+        return opts;
+    }
+
+    // Obter classificado do grupo (pelo palpite)
+    function getClassificadoGrupo(grupo, pos) {
+        return palpites.grupos[grupo]?.[pos] || "";
+    }
+
+    // Renderizar oitavas
+    function renderOitavas() {
+        const container = document.getElementById("oitavas");
+        container.innerHTML = "<h3 style='margin-bottom:18px'>⚔️ Oitavas de final</h3>";
+        confrontosOitavas.forEach(conf => {
+            const time1 = getClassificadoGrupo(conf.grupoA, "first");
+            const time2 = getClassificadoGrupo(conf.grupoB, "second");
+            const card = document.createElement("div");
+            card.className = "jogo-card";
+            card.innerHTML = `
+                <div class="confronto">
+                    <span class="time-nome">${time1 || "?"}  vs  ${time2 || "?"}</span>
+                    <span class="vs">VENCEDOR:</span>
+                    <select data-id="${conf.id}" style="min-width:150px">
+                        <option value="">-- Escolher vencedor --</option>
+                        ${time1 ? `<option value="${time1}" ${palpites.oitavas[conf.id] === time1 ? "selected" : ""}>${time1}</option>` : ""}
+                        ${time2 ? `<option value="${time2}" ${palpites.oitavas[conf.id] === time2 ? "selected" : ""}>${time2}</option>` : ""}
+                    </select>
+                </div>
+                <div style="font-size:0.75rem; color:#777">${conf.desc}</div>
+            `;
+            container.appendChild(card);
+        });
+        document.querySelectorAll("#oitavas select").forEach(sel => {
+            sel.addEventListener("change", (e) => {
+                const id = sel.dataset.id;
+                palpites.oitavas[id] = sel.value;
+                salvarLocalStorage();
+                renderTodasAbas();
+            });
+        });
+    }
+
+    // render quartas (gerar selects baseado nos vencedores das oitavas)
+    function renderQuartas() {
+        const container = document.getElementById("quartas");
+        container.innerHTML = "<h3 style='margin-bottom:18px'>🏅 Quartas de final</h3>";
+        quartasChaves.forEach(q => {
+            const op1 = palpites.oitavas[q.dep1] || "???";
+            const op2 = palpites.oitavas[q.dep2] || "???";
+            const card = document.createElement("div");
+            card.className = "jogo-card";
+            card.innerHTML = `
+                <div class="confronto">
+                    <span class="time-nome">${op1}  vs  ${op2}</span>
+                    <span class="vs">VENCEDOR:</span>
+                    <select data-id="${q.id}">
+                        <option value="">-- Escolher --</option>
+                        ${op1 !== "???" ? `<option value="${op1}" ${palpites.quartas[q.id] === op1 ? "selected" : ""}>${op1}</option>` : ""}
+                        ${op2 !== "???" ? `<option value="${op2}" ${palpites.quartas[q.id] === op2 ? "selected" : ""}>${op2}</option>` : ""}
+                    </select>
+                </div>
+                <div>${q.desc}</div>
+            `;
+            container.appendChild(card);
+        });
+        document.querySelectorAll("#quartas select").forEach(sel => {
+            sel.addEventListener("change", (e) => {
+                const id = sel.dataset.id;
+                palpites.quartas[id] = sel.value;
+                salvarLocalStorage();
+                renderTodasAbas();
+            });
+        });
+    }
+
+    function renderSemifinais() {
+        const container = document.getElementById("semifinais");
+        container.innerHTML = "<h3 style='margin-bottom:18px'>🔥 Semifinais</h3>";
+        semis.forEach(s => {
+            const op1 = palpites.quartas[s.dep1] || "???";
+            const op2 = palpites.quartas[s.dep2] || "???";
+            const card = document.createElement("div");
+            card.className = "jogo-card";
+            card.innerHTML = `
+                <div class="confronto">
+                    <span class="time-nome">${op1}  vs  ${op2}</span>
+                    <span class="vs">VENCEDOR:</span>
+                    <select data-id="${s.id}">
+                        <option value="">-- Escolher --</option>
+                        ${op1 !== "???" ? `<option value="${op1}" ${palpites.semifinais[s.id] === op1 ? "selected" : ""}>${op1}</option>` : ""}
+                        ${op2 !== "???" ? `<option value="${op2}" ${palpites.semifinais[s.id] === op2 ? "selected" : ""}>${op2}</option>` : ""}
+                    </select>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        document.querySelectorAll("#semifinais select").forEach(sel => {
+            sel.addEventListener("change", (e) => {
+                const id = sel.dataset.id;
+                palpites.semifinais[id] = sel.value;
+                salvarLocalStorage();
+                renderTodasAbas();
+            });
+        });
+    }
+
+    function renderFinal() {
+        const container = document.getElementById("finais");
+        const vencedorSem1 = palpites.semifinais["SEM1"] || "???";
+        const vencedorSem2 = palpites.semifinais["SEM2"] || "???";
+        const perdedorSem1 = (() => {
+            const q1 = palpites.quartas["QUA1"], q2 = palpites.quartas["QUA2"];
+            if (palpites.semifinais["SEM1"] === q1) return q2;
+            if (palpites.semifinais["SEM1"] === q2) return q1;
+            return "???";
+        })();
+        const perdedorSem2 = (() => {
+            const q3 = palpites.quartas["QUA3"], q4 = palpites.quartas["QUA4"];
+            if (palpites.semifinais["SEM2"] === q3) return q4;
+            if (palpites.semifinais["SEM2"] === q4) return q3;
+            return "???";
+        })();
+
+        container.innerHTML = `
+            <h3>🏆 FINAL</h3>
+            <div class="jogo-card">
+                <div class="confronto"><span class="time-nome">${vencedorSem1}  vs  ${vencedorSem2}</span>
+                <select id="campeaoSelect"><option value="">-- CAMPEÃO --</option>
+                    ${vencedorSem1 !== "???" ? `<option value="${vencedorSem1}" ${palpites.final.campeao === vencedorSem1 ? "selected" : ""}>${vencedorSem1}</option>` : ""}
+                    ${vencedorSem2 !== "???" ? `<option value="${vencedorSem2}" ${palpites.final.campeao === vencedorSem2 ? "selected" : ""}>${vencedorSem2}</option>` : ""}
+                </select></div>
+            </div>
+            <h3 style="margin-top:20px">🥉 TERCEIRO LUGAR</h3>
+            <div class="jogo-card">
+                <div class="confronto"><span class="time-nome">${perdedorSem1}  vs  ${perdedorSem2}</span>
+                <select id="terceiroSelect"><option value="">-- 3º LUGAR --</option>
+                    ${perdedorSem1 !== "???" ? `<option value="${perdedorSem1}" ${palpites.final.terceiro === perdedorSem1 ? "selected" : ""}>${perdedorSem1}</option>` : ""}
+                    ${perdedorSem2 !== "???" ? `<option value="${perdedorSem2}" ${palpites.final.terceiro === perdedorSem2 ? "selected" : ""}>${perdedorSem2}</option>` : ""}
+                </select></div>
+            </div>
+        `;
+        document.getElementById("campeaoSelect")?.addEventListener("change", (e) => {
+            palpites.final.campeao = e.target.value;
+            salvarLocalStorage();
+        });
+        document.getElementById("terceiroSelect")?.addEventListener("change", (e) => {
+            palpites.final.terceiro = e.target.value;
+            salvarLocalStorage();
+        });
+    }
+
+    function renderTodasAbas() {
+        renderGrupos();
+        renderOitavas();
+        renderQuartas();
+        renderSemifinais();
+        renderFinal();
+    }
+
+    // GERAR PDF
+    async function gerarPDF() {
+        const nome = document.getElementById("nomeParticipante").value.trim();
+        if (!nome) {
+            alert("Por favor, digite seu nome antes de gerar o PDF.");
+            return;
+        }
+        // Verifica se todos palpites essenciais estão preenchidos?
+        let faltam = false;
+        for(let g in palpites.grupos) if(!palpites.grupos[g].first || !palpites.grupos[g].second) faltam=true;
+        for(let o in palpites.oitavas) if(!palpites.oitavas[o]) faltam=true;
+        for(let q in palpites.quartas) if(!palpites.quartas[q]) faltam=true;
+        for(let s in palpites.semifinais) if(!palpites.semifinais[s]) faltam=true;
+        if(!palpites.final.campeao || !palpites.final.terceiro) faltam=true;
+        if(faltam && !confirm("Ainda existem palpites em branco! Deseja gerar o PDF assim mesmo?")) return;
+
+        const element = document.createElement('div');
+        element.style.padding = '24px';
+        element.style.backgroundColor = 'white';
+        element.style.fontFamily = 'sans-serif';
+        element.innerHTML = `<h2 style="color:#1a472a">BOLÃO COPA 2026 - ${nome}</h2><p>Gerado em: ${new Date().toLocaleString()}</p><hr/>`;
+        // grupos
+        element.innerHTML += `<h3>FASE DE GRUPOS</h3>`;
+        for(let g in GRUPOS) {
+            element.innerHTML += `<p><strong>Grupo ${g}:</strong> 1º ${palpites.grupos[g]?.first || '?'} | 2º ${palpites.grupos[g]?.second || '?'}</p>`;
+        }
+        element.innerHTML += `<h3>OITAVAS</h3>`;
+        confrontosOitavas.forEach(c=> { element.innerHTML += `<p>${c.desc}: ${palpites.oitavas[c.id] || '?'}</p>`});
+        element.innerHTML += `<h3>QUARTAS</h3>`;
+        quartasChaves.forEach(q=> { element.innerHTML += `<p>${q.desc}: ${palpites.quartas[q.id] || '?'}</p>`});
+        element.innerHTML += `<h3>SEMIFINAIS</h3>`;
+        semis.forEach(s=> { element.innerHTML += `<p>${s.desc}: ${palpites.semifinais[s.id] || '?'}</p>`});
+        element.innerHTML += `<h3>FINAL</h3><p>🏆 Campeão: ${palpites.final.campeao || '?'}</p><p>🥉 Terceiro lugar: ${palpites.final.terceiro || '?'}</p>`;
+        document.body.appendChild(element);
+        try {
+            const canvas = await html2canvas(element, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 190;
+            const pageHeight = 277;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 10;
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+            pdf.save(`bolao_copa2026_${nome.replace(/\s/g, '_')}.pdf`);
+        } catch(e) { alert("Erro ao gerar PDF: "+e); }
+        finally { document.body.removeChild(element); }
+    }
+
+    document.getElementById("limparBtn").addEventListener("click", () => {
+        if(confirm("Apagar todos os palpites?")) {
+            palpites = { grupos: {}, oitavas: {}, quartas: {}, semifinais: {}, final: { campeao: "", terceiro: "" } };
+            initPalpites();
+            salvarLocalStorage();
+            renderTodasAbas();
+        }
+    });
+    document.getElementById("gerarPdfBtn").addEventListener("click", gerarPDF);
+    document.getElementById("nomeParticipante").addEventListener("input", () => salvarLocalStorage());
+
+    // Tabs
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+            btn.classList.add("active");
+            const tabId = btn.dataset.tab;
+            document.querySelectorAll(".tab-content").forEach(tab=>tab.classList.remove("active"));
+            document.getElementById(tabId).classList.add("active");
+        });
+    });
+
+    carregarLocalStorage();
+    initPalpites();
+    renderTodasAbas();
+</script>
+</body>
+</html>
